@@ -1,3 +1,4 @@
+#[cfg(feature="serde")]
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 
@@ -102,7 +103,8 @@ impl Ord for FractionByte {
 /// i<sup>th</sup> byte (1-based indexing):
 ///
 /// (128/256)^N + sum<sub>i=1..N</sub> (z_i / 256^i)
-#[derive(PartialEq, Eq, Clone, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct ZenoIndex(Vec<u8>);
 
 fn new_before(bytes: &[u8]) -> Vec<u8> {

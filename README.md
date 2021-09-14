@@ -55,7 +55,8 @@ very limited:
 - Given any `ZenoIndex`, construct another `ZenoIndex` before or after it.
 - Given any two `ZenoIndex`es, construct a `ZenoIndex` between them.
 - Compare two `ZenoIndex`es for order and equality.
-- Serialize and deserialize using serde.
+- Serialize and deserialize using serde (with the `serde` crate feature, which is
+  enabled by default).
 
 Notably, `ZenoIndex`es are opaque: even though they represent a number, they don't
 provide an interface for accessing that number directly. Additionally, they
