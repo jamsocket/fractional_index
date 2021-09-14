@@ -97,7 +97,7 @@ fn main() {
     assert!(idx4 < idx2);
     assert!(idx4 < idx3);
 
-    // It is legal to construct an index between two other values, however,
+    // It is legal to construct an index between any two values, however,
     // the only guarantees with regards to ordering are that:
     // - The new value will compare appropriately with the values used in its
     //   construction.
