@@ -85,7 +85,7 @@ fn main() {
     // Now that we have two ZenoIndexes, we can construct another between them.
     // new_between returns an Option, since it is impossible to construct a
     // value between two values if they are equal (it also returns None if
-    // the first argument is greater than the first).
+    // the first argument is greater than the second).
     let idx3 = ZenoIndex::new_between(&idx, &idx2).unwrap();
 
     assert!(idx < idx3);
