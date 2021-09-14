@@ -1,10 +1,10 @@
 # `fractional_index`
 
-This crate implements fractional indexing, an idea coined by Figma in their blog post
+This crate implements fractional indexing, an term coined (I think?) by Figma in their blog post
 [*Realtime Editing of Ordered Sequences*](https://www.figma.com/blog/realtime-editing-of-ordered-sequences/).
 
 Specifically, this crate provides a type called `ZenoIndex`. A `ZenoIndex` acts as a
-“black box” that has no accessor functions, can only be read by comparing it to
+“black box” that has no accessor functions, can only be used by comparing it to
 another `ZenoIndex`, and can only be constructed from a default constructor or by
 reference to an existing `ZenoIndex`.
 
@@ -21,22 +21,24 @@ each value an arbitrary ascending key in some ordered type. However, our ability
 an insert to an arbitrary position in the list will depend on our ability to construct a key
 between the two adjacent values.
 
-One approach to this is to use a floating-point number as the key. To find a key between two
+A naive approach to this is to use a floating-point number as the key. To find a key between two
 adjacent values, we could average those two values. However, this runs into numerical precision
 issues where, as the gap between adjacent values becomes smaller, it becomes impossible to
 find a new value that is strictly between two others. (If you squint, this is also like the [line-numbering problem](https://en.wikipedia.org/wiki/Line_number#Line_numbers_and_style) that plagued BASIC developers.)
 
-A solution to this is to use arbitrary-precision fractions, with which you can always represent
-a number strictly between two other (non-equal) numbers. One downside is that the room needed
-to store this representation tends to grow with repeated averaging. Suppose we need to find
-a value between 0.76 and 0.63. Averaging gives us 0.695, which requires an extra (decimal) 
-digit to represent than the original two numbers. But for the purpose of ordering, we really
-just need a number x such that 0.63 < x < 0.76. We would be just as happy to use 0.7, which 
-requires fewer digits than the original numbers to represent.
+One solution to this is to use arbitrary-precision fractions, with which you can always 
+represent a number strictly between two other (non-equal) numbers. Aside from polluting your
+data structure code with unnecessary arithmatic, the downside is that the 
+room needed to store this representation tends to grow with repeated averaging. This happens in 
+decimal, too: suppose we need to find a value between 0.76 and 0.63. Averaging gives us 0.695, 
+which requires an extra digit to represent than the original two numbers. But for the purpose 
+of ordering, we really just need a number x such that 0.63 < x < 0.76. We would be just as 
+happy to use 0.7, which requires fewer digits than the original numbers to represent.
 
 At the core of a `ZenoIndex` is an arbitrary-precision floating-point number, but by limiting
 the interface to comparisons and providing weaker semantics, the implementation is free to
-make optimizations akin to the example above in order to optimize for space.
+make optimizations akin to the example above (albeit in base-256) in order to optimize for 
+space.
 
 Figma's post sketches the approach they use, which is based on a string representation
 of fractional numbers, and some of the implementation details are left up to the reader. This crate attempts to formalize the math behind the approach and provide a clean interface that abstracts the implementation details away from the crate user.
