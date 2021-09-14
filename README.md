@@ -58,10 +58,51 @@ very limited:
 - Serialize and deserialize using serde.
 
 Notably, `ZenoIndex`es are opaque: even though they represent a number, they don't
-provide an interface for accessing it directly. Additionally, they
-don't provide guarantees about representation beyond what is exposed by the interface
-(for example, there are infinite valid possible `ZenoIndex` values between any other
-two non-equal `ZenoIndex`es), which gives the implementation room to optimize for space.
+provide an interface for accessing that number directly. Additionally, they
+don't provide guarantees about representation beyond what is exposed by the interface,
+which gives the implementation room to optimize for space.
+
+## Examples
+
+```rust
+use fractional_index::ZenoIndex;
+
+fn main() {
+    // Unless you already have a ZenoIndex, the only way to obtain one is using
+    // the default constructor.
+    let idx = ZenoIndex::default();
+
+    // Now that we have a ZenoIndex, we can construct another relative to it.
+    let idx2 = ZenoIndex::new_after(&idx);
+
+    assert!(idx < idx2);
+
+    // Now that we have two ZenoIndexes, we can construct another between them.
+    // new_between returns an Option, since it is impossible to construct a
+    // value between two values if they are equal (it also returns None if
+    // the first argument is greater than the first).
+    let idx3 = ZenoIndex::new_between(&idx, &idx2).unwrap();
+
+    assert!(idx < idx3);
+    assert!(idx3 < idx2);
+
+    let idx4 = ZenoIndex::new_before(&idx);
+
+    assert!(idx4 < idx);
+    assert!(idx4 < idx2);
+    assert!(idx4 < idx3);
+
+    // It is legal to construct an index between two other values, however,
+    // the only guarantees with regards to ordering are that:
+    // - The new value will compare appropriately with the values used in its
+    //   construction.
+    // - Comparisons with other values are an undefined implementation detail,
+    //   but comparisons will always be transitive. That said, it is possible
+    //   (likely, even) to construct two values which compare as equal, so
+    //   care must be taken to account for that.
+    let idx5 = ZenoIndex::new_between(&idx4, &idx2).unwrap();
+}
+```
 
 ## Implementation
 
@@ -100,7 +141,7 @@ which we can rewrite as
 
 by defining *v'<sub>i<sub>* as the *i<sup>th</sup>* byte when *i* < *n* or 127.5 if *i* ≥ *n*.
 
-Since it's impossible to represent a fractional byte value, we convert bytes into an `enum` representation where they can take either a standard `u8` byte value, or the “magic” value of 127.5 (the word *magic* here refers to the [wizard sense](https://en.wikipedia.org/wiki/Places_in_Harry_Potter#Platform_Nine_and_Three-Quarters) rather than the [computational one](https://en.wikipedia.org/wiki/Magic_number_(programming))). The comparison operator is implemented on this enum such that the magic value compares as greater than 127 but less than 128.
+Since it's impossible to represent a fractional byte value, we convert bytes into an `enum` representation where they can take either a standard `u8` byte value, or the “magic” value of 127.5 (the word *magic* here is used more in the [wizard sense](https://en.wikipedia.org/wiki/Places_in_Harry_Potter#Platform_Nine_and_Three-Quarters) than the [computational one](https://en.wikipedia.org/wiki/Magic_number_(programming))). The comparison operator is implemented on this enum such that the magic value compares as greater than 127 but less than 128.
 
 ### Construction
 

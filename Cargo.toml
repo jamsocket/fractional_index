@@ -7,3 +7,9 @@ edition = "2018"
 
 [dependencies]
 serde = { version = "1.0.130", features = ["derive"] }
+
+[build-dependencies]
+skeptic = "0.13"
+
+[dev-dependencies]
+skeptic = "0.13"
