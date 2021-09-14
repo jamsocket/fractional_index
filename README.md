@@ -24,7 +24,7 @@ between the two adjacent values.
 A naive approach to this is to use a floating-point number as the key. To find a key between two
 adjacent values, we could average those two values. However, this runs into numerical precision
 issues where, as the gap between adjacent values becomes smaller, it becomes impossible to
-find a new value that is strictly between two others. (If you squint, this is also like the [line-numbering problem](https://en.wikipedia.org/wiki/Line_number#Line_numbers_and_style) that plagued BASIC developers.)
+find a new value that is strictly between two others. (If you squint, this is like the [line-numbering problem](https://en.wikipedia.org/wiki/Line_number#Line_numbers_and_style) that plagued BASIC developers.)
 
 One solution to this is to replace the floats with arbitrary-precision fractions, with which 
 you can always 
@@ -103,6 +103,20 @@ fn main() {
     let idx5 = ZenoIndex::new_between(&idx4, &idx2).unwrap();
 }
 ```
+
+## Considerations
+
+All operations on a `ZenoIndex` are deterministic, which means that if you construct a
+`ZenoIndex` by reference to the same other `ZenoIndex`es, you will get the same
+`ZenoIndex` back. The right solution to this will depend on your use-case, but options
+include:
+
+- Only ever use `new_between` for keys that are adjacent in your data structure,
+  only use `new_before` on the least key in your data structure, and only use `new_after`
+  on the greatest key. This way, you will never construct a `ZenoIndex` that is already
+  a key in your data structure.
+- When inserting into your data structure, look for a value that already has that key;
+  if it does, transform the key by calling `new_between` with its adjacent key.
 
 ## Implementation
 
