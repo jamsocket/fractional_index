@@ -108,7 +108,8 @@ fn main() {
 
 All operations on a `ZenoIndex` are deterministic, which means that if you construct a
 `ZenoIndex` by reference to the same other `ZenoIndex`es, you will get the same
-`ZenoIndex` back. The right solution to this will depend on your use-case, but options
+`ZenoIndex` back. Without care, this may mean that an insert replaces an existing value
+in your data structure. The right solution to this will depend on your use-case, but options 
 include:
 
 - Only ever use `new_between` for keys that are adjacent in your data structure,
