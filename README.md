@@ -176,8 +176,8 @@ for a byte value between the two, and extend the representation by a byte if tha
 possible.
 
 These are not the only way to satisfy the public interface of `ZenoIndex`, so they represent 
-certain design considerations. In particular, the decision to increment or decrement the last 
-byte by 1 instead of averaging with 0 or 255 comes from the fact that we expect a new item to 
+certain design considerations. In particular, the decision to increment or decrement by 1 
+instead of averaging with 0 or 255 comes from the fact that we expect a new item to 
 often come directly after the last new item. In the limit case of a data structure that is only 
 ever appended to, this allows us to grow the size of the underlying representation by a byte 
 only once every 64 new items, instead of every 8 if we averaged.
