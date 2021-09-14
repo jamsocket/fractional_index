@@ -26,7 +26,8 @@ adjacent values, we could average those two values. However, this runs into nume
 issues where, as the gap between adjacent values becomes smaller, it becomes impossible to
 find a new value that is strictly between two others. (If you squint, this is also like the [line-numbering problem](https://en.wikipedia.org/wiki/Line_number#Line_numbers_and_style) that plagued BASIC developers.)
 
-One solution to this is to use arbitrary-precision fractions, with which you can always 
+One solution to this is to replace the floats with arbitrary-precision fractions, with which 
+you can always 
 represent a number strictly between two other (non-equal) numbers. Aside from polluting your
 data structure code with unnecessary arithmatic, the downside is that the 
 room needed to store this representation tends to grow with repeated averaging. This happens in 
