@@ -4,7 +4,7 @@
 [![docs.rs](https://img.shields.io/badge/docs-release-brightgreen)](https://docs.rs/fractional_index/)
 [![wokflow state](https://github.com/aper-dev/aper/workflows/build/badge.svg)](https://github.com/aper-dev/aper/actions/workflows/rust.yml)
 
-This crate implements fractional indexing, an term coined by Figma in their blog post
+This crate implements fractional indexing, a term coined by Figma in their blog post
 [*Realtime Editing of Ordered Sequences*](https://www.figma.com/blog/realtime-editing-of-ordered-sequences/).
 
 Specifically, this crate provides a type called `ZenoIndex`. A `ZenoIndex` acts as a
