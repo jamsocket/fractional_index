@@ -23,7 +23,7 @@ implementation of [Aper](https://aper.dev/).
 Given a key-value store that is sorted by key, we can construct an ordered list by assigning
 each value an arbitrary ascending key in some ordered type. However, our ability to perform
 an insert to an arbitrary position in the list will depend on our ability to construct a key
-between the two adjacent values.
+between any stwo adjacent values.
 
 A naive approach to this is to use a floating-point number as the key. To find a key between two
 adjacent values, we could average those two values. However, this runs into numerical precision
