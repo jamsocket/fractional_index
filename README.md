@@ -3,6 +3,7 @@
 [![crates.io](https://img.shields.io/crates/v/fractional_index.svg)](https://crates.io/crates/fractional_index)
 [![docs.rs](https://img.shields.io/badge/docs-release-brightgreen)](https://docs.rs/fractional_index/)
 [![wokflow state](https://github.com/aper-dev/aper/workflows/build/badge.svg)](https://github.com/aper-dev/aper/actions/workflows/rust.yml)
+[![dependency status](https://deps.rs/repo/github/aper-dev/fractional_index/status.svg)](https://deps.rs/repo/github/aper-dev/fractional_index)
 
 This crate implements fractional indexing, a term coined by Figma in their blog post
 [*Realtime Editing of Ordered Sequences*](https://www.figma.com/blog/realtime-editing-of-ordered-sequences/).
