@@ -1,9 +1,10 @@
 # `fractional_index`
 
+[![GitHub Repo stars](https://img.shields.io/github/stars/drifting-in-space/fractional_index?style=social)](https://github.com/drifting-in-space/fractional_index)
 [![crates.io](https://img.shields.io/crates/v/fractional_index.svg)](https://crates.io/crates/fractional_index)
 [![docs.rs](https://img.shields.io/badge/docs-release-brightgreen)](https://docs.rs/fractional_index/)
-[![wokflow state](https://github.com/aper-dev/aper/workflows/build/badge.svg)](https://github.com/aper-dev/aper/actions/workflows/rust.yml)
-[![dependency status](https://deps.rs/repo/github/aper-dev/fractional_index/status.svg)](https://deps.rs/repo/github/aper-dev/fractional_index)
+[![wokflow state](https://github.com/drifting-in-space/aper/workflows/build/badge.svg)](https://github.com/drifting-in-space/aper/actions/workflows/rust.yml)
+[![dependency status](https://deps.rs/repo/github/drifting-in-space/fractional_index/status.svg)](https://deps.rs/repo/github/drifting-in-space/fractional_index)
 
 This crate implements fractional indexing, a term coined by Figma in their blog post
 [*Realtime Editing of Ordered Sequences*](https://www.figma.com/blog/realtime-editing-of-ordered-sequences/).
@@ -16,15 +17,13 @@ reference to an existing `ZenoIndex`.
 This is useful as a key in a `BTreeMap` when we want to be able to arbitrarily insert or
 re-order elements in a collection, but don't actually care what the key is.
 
-For an ordered sequence data structure built atop this implementation, see the [List](https://aper.dev/doc/aper/data_structures/struct.List.html)
+For an ordered sequence data structure built atop this implementation, see the [List](https://docs.rs/aper/0.1.3/aper/data_structures/struct.List.html)
 implementation of [Aper](https://aper.dev/).
 
 ## Introduction
 
-Given a key-value store that is sorted by key, we can construct an ordered list by assigning
-each value an arbitrary ascending key in some ordered type. However, our ability to perform
-an insert to an arbitrary position in the list will depend on our ability to construct a key
-between any two adjacent values.
+Let's say we want to build a data structure that acts like a list but has fast arbitrary inserts at any
+point. One way is to start with a key-value store, and assign each value an arbitrary ascending key of some ordered type. However, our ability to perform an insert to an arbitrary position in the list will depend on our ability to construct a key between any two adjacent values.
 
 A naive approach to this is to use a floating-point number as the key. To find a key between two
 adjacent values, we could average those two values. However, this runs into numerical precision
@@ -136,7 +135,7 @@ to the implementation or just curious, this section describes the implementation
 Each `ZenoIndex` is backed by a (private) `Vec<u8>`, i.e. a sequence of bytes. 
 Mathematically, the numeric value represented by this sequence of bytes is:
 
-![](expr.png)
+![](https://raw.githubusercontent.com/drifting-in-space/fractional_index/main/expr.png)
 
 Where *n* is the number of bytes and *v<sub>i</sub>* is the value of the *i<sup>th</sup>* byte (zero-indexed).
 
@@ -154,11 +153,11 @@ Things get more complicated when one string of bytes is a prefix of the other. W
 
 To simpilify the code, we take advantage of some properties of infinite series. The representation above is equivalent to
 
-![](expr2.png)
+![](https://raw.githubusercontent.com/drifting-in-space/fractional_index/main/expr2.png)
 
 which we can rewrite as
 
-![](expr3.png)
+![](https://raw.githubusercontent.com/drifting-in-space/fractional_index/main/expr3.png)
 
 by defining *v'<sub>i<sub>* as the *i<sup>th</sup>* byte when *i* < *n* or 127.5 if *i* ≥ *n*.
 

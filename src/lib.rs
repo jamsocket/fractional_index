@@ -1,3 +1,5 @@
+#![doc = include_str!("../README.md")]
+
 #[cfg(feature="serde")]
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
@@ -18,13 +20,13 @@ const MID_LOW: u8 = 0b0100_0000; // =64
 /// string that compares as greater.
 const MID_HIGH: u8 = 0b1100_0000; // =192
 
-/// A [FractionByte] is the logical representation of a digit
-/// of a [ZenoIndex]. A [ZenoIndex] represents a finite number
-/// of [FractionByte::Byte] digits followed by an infinite number
-/// of [FractionByte::Magic] digits. Since we only need to store
+/// A [`FractionByte`] is the logical representation of a digit
+/// of a [`ZenoIndex`]. A [`ZenoIndex`] represents a finite number
+/// of [`FractionByte::Byte`] digits followed by an infinite number
+/// of [`FractionByte::Magic`] digits. Since we only need to store
 /// the “regular” bytes, the underlying representation stores just the
-/// raw `u8` values of the regular bytes. Conversion to [FractionByte]
-/// instances happens when individual digits of a [ZenoIndex] are
+/// raw `u8` values of the regular bytes. Conversion to [`FractionByte`]
+/// instances happens when individual digits of a [`ZenoIndex`] are
 /// accessed by calling `digit`.
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 enum FractionByte {
@@ -78,19 +80,21 @@ impl Ord for FractionByte {
     }
 }
 
-/// A [ZenoIndex] is a binary representation of a fraction between 0 and 1,
-/// *exclusive*, with arbitrary precision. The only operations it supports are:
+/// A [`ZenoIndex`] is a binary representation of a fraction between 0 and 1,
+/// *exclusive*, with arbitrary precision.
+/// 
+/// The only operations it supports are:
 ///
-/// - Construction of a [ZenoIndex] representing one half.
-/// - Comparison of two [ZenoIndex] values.
-/// - Returning an arbitrary [ZenoIndex] less or greater than another
-///   given [ZenoIndex].
-/// - Returning an arbitrary [ZenoIndex] strictly between two other [ZenoIndex]es.
+/// - Construction of a [`ZenoIndex`] representing one half.
+/// - Comparison of two [`ZenoIndex`] values.
+/// - Returning an arbitrary [`ZenoIndex`] less or greater than another
+///   given [`ZenoIndex`].
+/// - Returning an arbitrary [`ZenoIndex`] strictly between two other [`ZenoIndex`]es.
 ///
 /// Note that as a result of these restrictions:
 /// - It's possible to arrive at a value infinitely close, but not equal to,
 ///   zero or one ([hence the name](https://plato.stanford.edu/entries/paradox-zeno/)).
-/// - We only ever care about the  _relative_ value of two [ZenoIndex]es; not
+/// - We only ever care about the  _relative_ value of two [`ZenoIndex`]es; not
 ///   their actual value. In fact, the only reason to think about them as fractions
 ///   at all is because it makes them easier to reason about.
 ///
@@ -102,7 +106,7 @@ impl Ord for FractionByte {
 /// fraction represented by a given vector of N bytes, where z<sub>i</sub> is the
 /// i<sup>th</sup> byte (1-based indexing):
 ///
-/// (128/256)^N + sum<sub>i=1..N</sub> (z_i / 256^i)
+/// (128/256)<sup>N</sup> + Σ<sub>i=1..N</sub> (z<sub>i</sub> / 256<sup>i</sup>)
 #[derive(PartialEq, Eq, Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct ZenoIndex(Vec<u8>);
@@ -245,16 +249,20 @@ impl ZenoIndex {
             .unwrap_or_default()
     }
 
+    /// Construct a new [`ZenoIndex`] that compares as less than the given value.
     #[must_use]
     pub fn new_before(fs: &ZenoIndex) -> ZenoIndex {
         ZenoIndex(new_before(&fs.0))
     }
 
+    /// Construct a new [`ZenoIndex`] that compares as greater than the given value.
     #[must_use]
     pub fn new_after(fs: &ZenoIndex) -> ZenoIndex {
         ZenoIndex(new_after(&fs.0))
     }
 
+    /// Construct a new [`ZenoIndex`] that compares as greater than the first given
+    /// value and less than the second given value.
     #[must_use]
     pub fn new_between(left: &ZenoIndex, right: &ZenoIndex) -> Option<ZenoIndex> {
         new_between(&left.0, &right.0).map(ZenoIndex)
