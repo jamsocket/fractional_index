@@ -22,8 +22,11 @@ implementation of [Aper](https://aper.dev/).
 
 ## Introduction
 
-Let's say we want to build a data structure that acts like a list but has fast arbitrary inserts at any
-point. One way is to start with a key-value store, and assign each value an arbitrary ascending key of some ordered type. However, our ability to perform an insert to an arbitrary position in the list will depend on our ability to construct a key between any two adjacent values.
+Let's say we want to build a data structure that acts like a list but has fast arbitrary
+inserts at any point. One way is to start with a key-value store, and assign each value an
+arbitrary ascending key of some ordered type. However, our ability to perform an insert to
+an arbitrary position in the list will depend on our ability to construct a key between
+any two adjacent values.
 
 A naive approach to this is to use a floating-point number as the key. To find a key between two
 adjacent values, we could average those two values. However, this runs into numerical precision
@@ -124,6 +127,18 @@ include:
 - When inserting into your data structure, look for a value that already has that key;
   if it does, transform the key by calling `new_between` with its adjacent key.
 
+## Stability
+
+The byte representation of a `ZenoIndex` can be relied upon to be fully forward- and
+backward-compatible with future versions of this crate, meaning that the serialized
+representation of two `ZenoIndex`es produced by any version of this crate will compare
+the same way when deserialized in any other version.
+
+The actual byte representation of `ZenoIndex`es created by `new_before`, `new_after`,
+and `new_between` may differ between versions, but the result will always compare
+appropriately with the reference `ZenoIndex`(s) used for construction regardless
+of version.
+
 ## Implementation
 
 One of the goals of this crate is to provide an opaque interface that you can use
@@ -143,7 +158,11 @@ The right term alone would be sufficient as an arbitrary-precision fraction repr
 
 - It makes it impossible to represent zero. This is necessary because we always need to be able to represent a value *between* a `ZenoIndex` and zero.
 - It ensures that no two differing sequences of bytes represent the same number (without it, trailing zeros could be added without changing the represented numeric value).
-- It removes the “floor bias” that would bias the representation towards zero. In particular, it means that an empty sequence of bytes represents ½ instead of 0.
+- It removes the “floor bias” that would bias the representation towards zero. In particular, it means that an empty sequence of bytes represents ½ instead of 0.
+
+It is possible to obtain a reference to the raw bytes of a `ZenoIndex` with the `as_bytes()` method, which
+can be used for serialization that does not depend on `serde`. This byte representation can be passed to
+the `from_bytes` constructor.
 
 ### Comparisons
 
@@ -168,7 +187,7 @@ this enum such that the magic value compares as greater than 127 but less than 1
 
 ### Construction
 
-There are three ways to construct a `ZenoIndex`:
+There are three ways to construct a new `ZenoIndex`:
 
 - From nothing: `ZenoIndex` implements `Default`. Under the hood, this constructs a Zeno Index backed by an empty byte string -- i.e., equivalent to 0.5.
 - In relation to one other `ZenoIndex` (either before or after). We walk through the reference 
