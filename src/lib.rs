@@ -241,6 +241,16 @@ fn new_between(left: &[u8], right: &[u8]) -> Option<Vec<u8>> {
 }
 
 impl ZenoIndex {
+    /// Construct a [`ZenoIndex`] from the given byte representation.
+    pub fn from_bytes(bytes: Vec<u8>) -> Self {
+        ZenoIndex(bytes)
+    }
+
+    /// Return a [`ZenoIndex`]'s byte representation.
+    pub fn as_bytes(&self) -> &[u8] {
+        &self.0
+    }
+
     fn digit(&self, i: usize) -> FractionByte {
         self.0
             .get(i)
