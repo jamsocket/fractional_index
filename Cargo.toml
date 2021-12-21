@@ -1,6 +1,6 @@
 [package]
 name = "fractional_index"
-version = "0.1.1"
+version = "1.0.0"
 edition = "2018"
 readme = "README.md"
 description = "An implementation of fractional indexing."
