@@ -23,7 +23,7 @@ implementation of [Aper](https://aper.dev/).
 ## Introduction
 
 Let's say we want to build a data structure that acts like a list but has fast arbitrary
-inserts at any point. One way is to start with a key-value store, and assign each value an
+inserts at any point. One way is to start with an ordered key-value store, and assign each value an
 arbitrary ascending key of some ordered type. However, our ability to perform an insert to
 an arbitrary position in the list will depend on our ability to construct a key between
 any two adjacent values.
