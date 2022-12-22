@@ -1,6 +1,6 @@
 [package]
 name = "fractional_index"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2018"
 readme = "README.md"
 description = "An implementation of fractional indexing."
@@ -13,3 +13,6 @@ serde = { version = "1.0.130", features = ["derive"], optional=true }
 
 [features]
 default = ["serde"]
+
+[dev-dependencies]
+serde_json = "1.0.91"
