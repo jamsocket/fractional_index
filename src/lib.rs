@@ -1,6 +1,9 @@
 #![doc = include_str!("../README.md")]
 
-#[cfg(feature="serde")]
+#[cfg(feature = "serde")]
+pub mod lexico;
+
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 
@@ -8,7 +11,7 @@ use std::cmp::Ordering;
 const MAGIC_FLOOR: u8 = 0b0111_1111; // =127
 
 /// The smallest value greater than the magic byte.
-const MAGIC_CEIL: u8 = 0b1000_0000; // =128
+pub(crate) const MAGIC_CEIL: u8 = 0b1000_0000; // =128
 
 /// The byte we append to a byte string in order to generate a new byte
 /// string that compares as lower. Any value less than or equal to
@@ -82,7 +85,7 @@ impl Ord for FractionByte {
 
 /// A [`ZenoIndex`] is a binary representation of a fraction between 0 and 1,
 /// *exclusive*, with arbitrary precision.
-/// 
+///
 /// The only operations it supports are:
 ///
 /// - Construction of a [`ZenoIndex`] representing one half.
@@ -107,7 +110,7 @@ impl Ord for FractionByte {
 /// i<sup>th</sup> byte (1-based indexing):
 ///
 /// (128/256)<sup>N</sup> + Σ<sub>i=1..N</sub> (z<sub>i</sub> / 256<sup>i</sup>)
-#[derive(PartialEq, Eq, Clone, Debug)]
+#[derive(PartialEq, Eq, Clone, Debug, Default)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct ZenoIndex(Vec<u8>);
 
@@ -200,42 +203,34 @@ fn new_between(left: &[u8], right: &[u8]) -> Option<Vec<u8>> {
 
     // If we reach this point, one must be a prefix of the other.
     match left.len().cmp(&right.len()) {
-        Ordering::Less => {
-            match right[shortest_length].cmp(&MAGIC_CEIL) {
-                Ordering::Greater => {
-                    let mut bytes = right[0..=shortest_length].to_vec();
-                    bytes[shortest_length] -= 1;
-                    Some(bytes)
-                }
-                Ordering::Equal => {
-                    let (prefix, suffix) = right.split_at(shortest_length + 1);
-                    let mut bytes = prefix.to_vec();
-                    bytes.extend_from_slice(&new_before(suffix));
-                    Some(bytes)
-                }
-                Ordering::Less => {
-                    None
-                }
+        Ordering::Less => match right[shortest_length].cmp(&MAGIC_CEIL) {
+            Ordering::Greater => {
+                let mut bytes = right[0..=shortest_length].to_vec();
+                bytes[shortest_length] -= 1;
+                Some(bytes)
             }
-        }
-        Ordering::Greater => {
-            match left[shortest_length].cmp(&MAGIC_FLOOR) {
-                Ordering::Less => {
-                    let mut bytes = left[0..=shortest_length].to_vec();
-                    bytes[shortest_length] += 1;
-                    Some(bytes)
-                }
-                Ordering::Equal => {
-                    let (prefix, suffix) = left.split_at(shortest_length + 1);
-                    let mut bytes = prefix.to_vec();
-                    bytes.extend_from_slice(&new_after(suffix));
-                    Some(bytes)
-                }
-                Ordering::Greater => {
-                    None
-                }
+            Ordering::Equal => {
+                let (prefix, suffix) = right.split_at(shortest_length + 1);
+                let mut bytes = prefix.to_vec();
+                bytes.extend_from_slice(&new_before(suffix));
+                Some(bytes)
             }
-        }
+            Ordering::Less => None,
+        },
+        Ordering::Greater => match left[shortest_length].cmp(&MAGIC_FLOOR) {
+            Ordering::Less => {
+                let mut bytes = left[0..=shortest_length].to_vec();
+                bytes[shortest_length] += 1;
+                Some(bytes)
+            }
+            Ordering::Equal => {
+                let (prefix, suffix) = left.split_at(shortest_length + 1);
+                let mut bytes = prefix.to_vec();
+                bytes.extend_from_slice(&new_after(suffix));
+                Some(bytes)
+            }
+            Ordering::Greater => None,
+        },
         Ordering::Equal => None,
     }
 }
@@ -301,15 +296,12 @@ impl Ord for ZenoIndex {
     }
 }
 
-impl Default for ZenoIndex {
-    fn default() -> Self {
-        ZenoIndex(Vec::default())
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use super::{*, FractionByte::{Magic, Byte}};
+    use super::{
+        FractionByte::{Byte, Magic},
+        *,
+    };
 
     #[test]
     fn test_zeno_index() {

@@ -139,6 +139,36 @@ and `new_between` may differ between versions, but the result will always compar
 appropriately with the reference `ZenoIndex`(s) used for construction regardless
 of version.
 
+## Serialization
+
+With the `serde` crate feature, which is enabled by default, `ZenoIndex` can be serialized into a `Vec<u8>`. This encodes efficiently when using [bincode](https://docs.rs/bincode/latest/bincode/) or similar binary serialization formats, which is a good way to pass data when both the sender and receiver are implemented in Rust.
+
+In cases where you want to produce data that is encoded as JSON or consumed by JavaScript, a `Vec<u8>` is not an efficient method of encoding data on the wire. Also, because the comparison between Zeno indices is not lexicographic, it takes extra work to compare two Zeno indices in a language other than Rust.
+
+To solve both of these problems, an alternate serializer called `lexico` is provided. It can be used as follows:
+
+```rust
+use fractional_index::ZenoIndex;
+use serde::{Serialize, Deserialize};
+
+#[derive(Serialize, Deserialize)]
+struct MyStruct(
+  #[serde(with="fractional_index::lexico")]
+  ZenoIndex
+);
+
+fn main() {
+  assert_eq!(
+    r#""80""#,
+    serde_json::to_string(
+      &MyStruct(ZenoIndex::default())
+    ).unwrap()
+  )
+}
+```
+
+The `lexico` representation of a `ZenoIndex` is its underlying bytes represented as a hexadecimal string, followed by "80". The addition of "80" makes it so that when strings are compared lexicographically, the ordering will be the same as the underlying Zeno indices they represent.
+
 ## Implementation
 
 One of the goals of this crate is to provide an opaque interface that you can use
