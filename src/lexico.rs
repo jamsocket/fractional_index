@@ -1,53 +1,22 @@
-use crate::{ZenoIndex, MAGIC_CEIL};
+//! A module for serializing and deserializing a [ZenoIndex] to
+//! lexicographically comparable strings.
+//! 
+//! Deprecated along with [ZenoIndex]. The equivalent for
+//! [crate::FractionalIndex] is [crate::stringify].
+
+#![allow(deprecated)]
+
+use crate::{
+    hex::{byte_to_hex, bytes_to_hex, hex_to_bytes},
+    zeno_index::{MAGIC_CEIL, ZenoIndex},
+};
 use serde::{Deserialize, Deserializer, Serializer};
-use std::{error::Error, fmt::Display};
-
-const HEX_CHARS: &[u8] = b"0123456789abcdef";
-
-fn byte_to_hex(byte: u8) -> String {
-    let mut s = String::new();
-    s.push(HEX_CHARS[(byte >> 4) as usize] as char);
-    s.push(HEX_CHARS[(byte & 0xf) as usize] as char);
-    s
-}
-
-#[derive(Debug)]
-struct InvalidChar(char);
-
-impl Display for InvalidChar {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "Invalid hex character: {}", self.0)
-    }
-}
-
-impl Error for InvalidChar {
-    fn description(&self) -> &str {
-        "Invalid hex character"
-    }
-}
-
-fn hex_to_byte(hex: &str) -> Result<u8, InvalidChar> {
-    let mut byte = 0;
-    for c in hex.chars() {
-        byte <<= 4;
-        match c {
-            '0'..='9' => byte += c as u8 - b'0',
-            'a'..='f' => byte += c as u8 - b'a' + 10,
-            _ => return Err(InvalidChar(c)),
-        }
-    }
-    Ok(byte)
-}
 
 pub fn serialize<S>(z: &ZenoIndex, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {
-    let bytes = z.as_bytes();
-    let mut s = String::with_capacity(bytes.len() * 2 + 2);
-    for byte in bytes {
-        s.push_str(&byte_to_hex(*byte));
-    }
+    let mut s = bytes_to_hex(z.as_bytes());
     s.push_str(&byte_to_hex(MAGIC_CEIL));
 
     serializer.serialize_str(&s)
@@ -58,10 +27,7 @@ where
     D: Deserializer<'de>,
 {
     let s = String::deserialize(deserializer)?;
-    let mut bytes = Vec::with_capacity(s.len() / 2);
-    for i in 0..s.len() / 2 {
-        bytes.push(hex_to_byte(&s[i * 2..i * 2 + 2]).map_err(serde::de::Error::custom)?);
-    }
+    let mut bytes = hex_to_bytes(&s).map_err(serde::de::Error::custom)?;
 
     if bytes.pop() != Some(MAGIC_CEIL) {
         return Err(serde::de::Error::custom("Expected trailing byte 128."));
@@ -73,7 +39,7 @@ where
 #[cfg(test)]
 mod test {
     use super::*;
-    use serde::{Serialize, Deserialize};
+    use serde::{Deserialize, Serialize};
     use serde_json::Value;
 
     #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -89,7 +55,8 @@ mod test {
     }
 
     fn string_to_zeno_index(s: &str) -> ZenoIndex {
-        let TestStruct(result) = serde_json::from_str::<TestStruct>(&format!(r#""{}""#, s)).unwrap();
+        let TestStruct(result) =
+            serde_json::from_str::<TestStruct>(&format!(r#""{}""#, s)).unwrap();
         result.clone()
     }
 
@@ -125,7 +92,10 @@ mod test {
         }
 
         for i in 0..(indices.len() - 1) {
-            assert!(zeno_index_to_string(indices[i].clone()) < zeno_index_to_string(indices[i + 1].clone()));
+            assert!(
+                zeno_index_to_string(indices[i].clone())
+                    < zeno_index_to_string(indices[i + 1].clone())
+            );
             assert_eq!(
                 string_to_zeno_index(&zeno_index_to_string(indices[i].clone())),
                 indices[i]
@@ -137,11 +107,10 @@ mod test {
             for i in 0..(indices.len() - 1) {
                 let cb = ZenoIndex::new_between(&indices[i], &indices[i + 1]).unwrap();
 
-                assert!(zeno_index_to_string(indices[i].clone()) < zeno_index_to_string(cb.clone()));
-                assert_eq!(
-                    string_to_zeno_index(&zeno_index_to_string(cb.clone())),
-                    cb
+                assert!(
+                    zeno_index_to_string(indices[i].clone()) < zeno_index_to_string(cb.clone())
                 );
+                assert_eq!(string_to_zeno_index(&zeno_index_to_string(cb.clone())), cb);
 
                 new_indices.push(cb);
                 new_indices.push(indices[i + 1].clone());
