@@ -1,8 +1,16 @@
-use std::cmp::Ordering;
+use crate::hex::{bytes_to_hex, hex_to_bytes};
+use std::{
+    error::Error,
+    fmt::{self, Display},
+};
+
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 
 pub(crate) const TERMINATOR: u8 = 0b1000_0000; // =128
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct FractionalIndex(Vec<u8>);
 
 impl Default for FractionalIndex {
@@ -31,7 +39,6 @@ fn new_before(bytes: &[u8]) -> Vec<u8> {
     }
 
     panic!("We should never reach the end of a properly-terminated fractional index without finding a byte greater than 0.")
-    // return vec![TERMINATOR / 4];
 }
 
 fn new_after(bytes: &[u8]) -> Vec<u8> {
@@ -54,28 +61,72 @@ fn new_after(bytes: &[u8]) -> Vec<u8> {
     }
 
     panic!("We should never reach the end of a properly-terminated fractional index without finding a byte less than 255.")
-    // return vec![(TERMINATOR / 4) * 3];
 }
 
+#[derive(Debug)]
+pub enum DecodeError {
+    EmptyString,
+    MissingTerminator,
+    InvalidBase64,
+}
+
+impl Display for DecodeError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            DecodeError::EmptyString => write!(f, "Empty string"),
+            DecodeError::MissingTerminator => write!(f, "Missing terminator"),
+            DecodeError::InvalidBase64 => write!(f, "Invalid base64"),
+        }
+    }
+}
+
+impl Error for DecodeError {}
+
 impl FractionalIndex {
-    /// Constructs a FractionalIndex from a byte vec, which does not include
+    /// Constructs a FractionalIndex from a byte vec, which DOES NOT include
     /// the terminating byte.
-    fn from_vec(mut bytes: Vec<u8>) -> Self {
+    fn from_vec_unterminated(mut bytes: Vec<u8>) -> Self {
         bytes.push(TERMINATOR);
         FractionalIndex(bytes)
     }
 
-    #[cfg(test)]
-    fn as_bytes(&self) -> &[u8] {
+    pub fn from_bytes(bytes: Vec<u8>) -> Result<Self, DecodeError> {
+        if bytes.last() != Some(&TERMINATOR) {
+            return Err(DecodeError::MissingTerminator);
+        }
+        Ok(FractionalIndex(bytes))
+    }
+
+    /// Returns the byte representation of this FractionalIndex, which DOES
+    /// INCLUDE the terminating byte.
+    pub fn as_bytes(&self) -> &[u8] {
         &self.0
     }
 
+    pub fn to_hex(&self) -> String {
+        bytes_to_hex(&self.0)
+    }
+
+    pub fn from_hex(s: &str) -> Result<Self, DecodeError> {
+        if s.is_empty() {
+            return Err(DecodeError::EmptyString);
+        }
+
+        let bytes = hex_to_bytes(s).map_err(|_| DecodeError::InvalidBase64)?;
+
+        if bytes.last() != Some(&TERMINATOR) {
+            return Err(DecodeError::MissingTerminator);
+        }
+
+        FractionalIndex::from_bytes(bytes)
+    }
+
     pub fn new_before(FractionalIndex(bytes): &FractionalIndex) -> FractionalIndex {
-        FractionalIndex::from_vec(new_before(bytes))
+        FractionalIndex::from_vec_unterminated(new_before(bytes))
     }
 
     pub fn new_after(FractionalIndex(bytes): &FractionalIndex) -> FractionalIndex {
-        FractionalIndex::from_vec(new_after(bytes))
+        FractionalIndex::from_vec_unterminated(new_after(bytes))
     }
 
     pub fn new_between(
@@ -87,7 +138,7 @@ impl FractionalIndex {
             if left[i] < right[i] - 1 {
                 let mut bytes: Vec<u8> = left[0..=i].into();
                 bytes[i] += (right[i] - left[i]) / 2;
-                return Some(FractionalIndex::from_vec(bytes));
+                return Some(FractionalIndex::from_vec_unterminated(bytes));
             }
 
             if left[i] == right[i] - 1 {
@@ -95,7 +146,12 @@ impl FractionalIndex {
                 let mut bytes = Vec::with_capacity(suffix.len() + prefix.len() + 1);
                 bytes.extend_from_slice(&prefix);
                 bytes.extend_from_slice(&new_after(&suffix));
-                return Some(FractionalIndex::from_vec(bytes));
+                return Some(FractionalIndex::from_vec_unterminated(bytes));
+            }
+
+            if left[i] > right[i] {
+                // We return None if right is greater than left.
+                return None;
             }
         }
 
@@ -105,15 +161,14 @@ impl FractionalIndex {
             let mut bytes = Vec::with_capacity(new_suffix.len() + prefix.len() + 1);
             bytes.extend_from_slice(&prefix);
             bytes.extend_from_slice(&new_suffix);
-            return Some(FractionalIndex::from_vec(bytes));
+            return Some(FractionalIndex::from_vec_unterminated(bytes));
         } else if left.len() > right.len() {
             let (prefix, suffix) = left.split_at(shorter_len + 1);
-            println!("prefix={:?} suffix={:?}", prefix, suffix);
             let new_suffix = new_after(&suffix);
             let mut bytes = Vec::with_capacity(new_suffix.len() + prefix.len() + 1);
             bytes.extend_from_slice(&prefix);
             bytes.extend_from_slice(&new_suffix);
-            return Some(FractionalIndex::from_vec(bytes));
+            return Some(FractionalIndex::from_vec_unterminated(bytes));
         } else {
             // They are equal.
             None
@@ -138,8 +193,20 @@ mod tests {
     }
 
     #[test]
+    fn new_after_simple() {
+        let mut i = FractionalIndex::default();
+        assert_eq!(i.as_bytes(), &[128]);
+
+        i = FractionalIndex::new_after(&i);
+        assert_eq!(i.as_bytes(), &[129, 128]);
+
+        let i = FractionalIndex::new_after(&i);
+        assert_eq!(i.as_bytes(), &[130, 128]);
+    }
+
+    #[test]
     fn new_before_longer() {
-        let mut i = FractionalIndex::from_vec(vec![100, 100, 3]);
+        let mut i = FractionalIndex::from_vec_unterminated(vec![100, 100, 3]);
         assert_eq!(i.as_bytes(), &[100, 100, 3, 128]);
 
         i = FractionalIndex::new_before(&i);
@@ -150,8 +217,20 @@ mod tests {
     }
 
     #[test]
+    fn new_after_longer() {
+        let mut i = FractionalIndex::from_vec_unterminated(vec![240, 240, 3]);
+        assert_eq!(i.as_bytes(), &[240, 240, 3, 128]);
+
+        i = FractionalIndex::new_after(&i);
+        assert_eq!(i.as_bytes(), &[241, 128]);
+
+        i = FractionalIndex::new_after(&i);
+        assert_eq!(i.as_bytes(), &[242, 128]);
+    }
+
+    #[test]
     fn new_before_zeros() {
-        let mut i = FractionalIndex::from_vec(vec![0, 0]);
+        let mut i = FractionalIndex::from_vec_unterminated(vec![0, 0]);
         assert_eq!(i.as_bytes(), &[0, 0, 128]);
 
         i = FractionalIndex::new_before(&i);
@@ -162,8 +241,20 @@ mod tests {
     }
 
     #[test]
+    fn new_after_max() {
+        let mut i = FractionalIndex::from_vec_unterminated(vec![255, 255]);
+        assert_eq!(i.as_bytes(), &[255, 255, 128]);
+
+        i = FractionalIndex::new_after(&i);
+        assert_eq!(i.as_bytes(), &[255, 255, 129, 128]);
+
+        i = FractionalIndex::new_after(&i);
+        assert_eq!(i.as_bytes(), &[255, 255, 130, 128]);
+    }
+
+    #[test]
     fn new_before_wrap() {
-        let mut i = FractionalIndex::from_vec(vec![0]);
+        let mut i = FractionalIndex::from_vec_unterminated(vec![0]);
         assert_eq!(i.as_bytes(), &[0, 128]);
 
         i = FractionalIndex::new_before(&i);
@@ -171,59 +262,68 @@ mod tests {
     }
 
     #[test]
+    fn new_after_wrap() {
+        let mut i = FractionalIndex::from_vec_unterminated(vec![255]);
+        assert_eq!(i.as_bytes(), &[255, 128]);
+
+        i = FractionalIndex::new_after(&i);
+        assert_eq!(i.as_bytes(), &[255, 129, 128]);
+    }
+
+    #[test]
     fn new_between_simple() {
         {
-            let left = FractionalIndex::from_vec(vec![100]);
-            let right = FractionalIndex::from_vec(vec![119]);
+            let left = FractionalIndex::from_vec_unterminated(vec![100]);
+            let right = FractionalIndex::from_vec_unterminated(vec![119]);
             let mid = FractionalIndex::new_between(&left, &right).unwrap();
             assert_eq!(mid.as_bytes(), &[109, 128]);
         }
 
         {
-            let left = FractionalIndex::from_vec(vec![100, 100]);
-            let right = FractionalIndex::from_vec(vec![100, 104]);
+            let left = FractionalIndex::from_vec_unterminated(vec![100, 100]);
+            let right = FractionalIndex::from_vec_unterminated(vec![100, 104]);
             let mid = FractionalIndex::new_between(&left, &right).unwrap();
             assert_eq!(mid.as_bytes(), &[100, 102, 128]);
         }
 
         {
-            let left = FractionalIndex::from_vec(vec![100, 100]);
-            let right = FractionalIndex::from_vec(vec![100, 103]);
+            let left = FractionalIndex::from_vec_unterminated(vec![100, 100]);
+            let right = FractionalIndex::from_vec_unterminated(vec![100, 103]);
             let mid = FractionalIndex::new_between(&left, &right).unwrap();
             assert_eq!(mid.as_bytes(), &[100, 101, 128]);
         }
 
         {
-            let left = FractionalIndex::from_vec(vec![100, 100]);
-            let right = FractionalIndex::from_vec(vec![100, 102]);
+            let left = FractionalIndex::from_vec_unterminated(vec![100, 100]);
+            let right = FractionalIndex::from_vec_unterminated(vec![100, 102]);
             let mid = FractionalIndex::new_between(&left, &right).unwrap();
             assert_eq!(mid.as_bytes(), &[100, 101, 128]);
         }
 
         {
-            let left = FractionalIndex::from_vec(vec![108]);
-            let right = FractionalIndex::from_vec(vec![109]);
+            let left = FractionalIndex::from_vec_unterminated(vec![108]);
+            let right = FractionalIndex::from_vec_unterminated(vec![109]);
             let mid = FractionalIndex::new_between(&left, &right).unwrap();
             assert_eq!(mid.as_bytes(), &[108, 129, 128]);
         }
 
         {
-            let left = FractionalIndex::from_vec(vec![127, 128]);
-            let right = FractionalIndex::from_vec(vec![128]);
+            let left = FractionalIndex::from_vec_unterminated(vec![127, 128]);
+            let right = FractionalIndex::from_vec_unterminated(vec![128]);
             let mid = FractionalIndex::new_between(&left, &right).unwrap();
             assert_eq!(mid.as_bytes(), &[127, 129, 128]);
         }
 
         {
-            let left = FractionalIndex::from_vec(vec![127, 129]);
-            let right = FractionalIndex::from_vec(vec![]);
+            let left = FractionalIndex::from_vec_unterminated(vec![127, 129]);
+            let right = FractionalIndex::from_vec_unterminated(vec![]);
             let mid = FractionalIndex::new_between(&left, &right).unwrap();
             assert_eq!(mid.as_bytes(), &[127, 130, 128]);
         }
 
         {
-            let left = FractionalIndex::from_vec(vec![127]);
-            let right = FractionalIndex::from_vec(vec![]);
+            let left = FractionalIndex::from_vec_unterminated(vec![127]);
+            let right = FractionalIndex::from_vec_unterminated(vec![]);
             let mid = FractionalIndex::new_between(&left, &right).unwrap();
             assert_eq!(mid.as_bytes(), &[127, 129, 128]);
         }
@@ -232,8 +332,8 @@ mod tests {
     #[test]
     fn new_between_extend() {
         {
-            let left = FractionalIndex::from_vec(vec![100]);
-            let right = FractionalIndex::from_vec(vec![101]);
+            let left = FractionalIndex::from_vec_unterminated(vec![100]);
+            let right = FractionalIndex::from_vec_unterminated(vec![101]);
             let mid = FractionalIndex::new_between(&left, &right).unwrap();
             assert_eq!(mid.as_bytes(), &[100, 129, 128]);
         }
@@ -242,29 +342,29 @@ mod tests {
     #[test]
     fn new_between_prefix() {
         {
-            let left = FractionalIndex::from_vec(vec![100]);
-            let right = FractionalIndex::from_vec(vec![100, 144]);
+            let left = FractionalIndex::from_vec_unterminated(vec![100]);
+            let right = FractionalIndex::from_vec_unterminated(vec![100, 144]);
             let mid = FractionalIndex::new_between(&left, &right).unwrap();
             assert_eq!(mid.as_bytes(), &[100, 144, 127, 128]);
         }
 
         {
-            let left = FractionalIndex::from_vec(vec![100, 122]);
-            let right = FractionalIndex::from_vec(vec![100]);
+            let left = FractionalIndex::from_vec_unterminated(vec![100, 122]);
+            let right = FractionalIndex::from_vec_unterminated(vec![100]);
             let mid = FractionalIndex::new_between(&left, &right).unwrap();
             assert_eq!(mid.as_bytes(), &[100, 122, 129, 128]);
         }
 
         {
-            let left = FractionalIndex::from_vec(vec![100, 122]);
-            let right = FractionalIndex::from_vec(vec![100, 128]);
+            let left = FractionalIndex::from_vec_unterminated(vec![100, 122]);
+            let right = FractionalIndex::from_vec_unterminated(vec![100, 128]);
             let mid = FractionalIndex::new_between(&left, &right).unwrap();
             assert_eq!(mid.as_bytes(), &[100, 125, 128]);
         }
 
         {
-            let left = FractionalIndex::from_vec(vec![]);
-            let right = FractionalIndex::from_vec(vec![128, 192]);
+            let left = FractionalIndex::from_vec_unterminated(vec![]);
+            let right = FractionalIndex::from_vec_unterminated(vec![128, 192]);
             let mid = FractionalIndex::new_between(&left, &right).unwrap();
             assert_eq!(mid.as_bytes(), &[128, 128]);
         }
@@ -308,11 +408,16 @@ mod tests {
         for _ in 0..12 {
             let mut new_indices: Vec<FractionalIndex> = Vec::new();
             for i in 0..(indices.len() - 1) {
-                println!("kk={:?} {:?}", indices[i], indices[i + 1]);
                 let cb = FractionalIndex::new_between(&indices[i], &indices[i + 1]).unwrap();
-                println!("{:?} {:?} {:?}", indices[i], cb, indices[i + 1]);
                 assert!(&indices[i] < &cb);
                 assert!(&cb < &indices[i + 1]);
+
+                let st = cb.to_hex();
+                assert!(FractionalIndex::from_hex(&st).unwrap() == cb);
+                println!("{:?} {:?}", cb, indices[i]);
+                println!("{} {}", st, indices[i].to_hex());
+                assert!(st < indices[i + 1].to_hex());
+
                 new_indices.push(cb);
                 new_indices.push(indices[i + 1].clone());
             }
