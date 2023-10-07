@@ -57,10 +57,7 @@ use fractional_index::FractionalIndex;
 fn main() {
   let a = FractionalIndex::default();
   let b = FractionalIndex::new_after(&a);
-  let c = FractionalIndex::new_between(
-    &a,
-    &b
-  ).unwrap();
+  let c = FractionalIndex::new_between(&a, &b).unwrap();
   
   let c_str = c.to_string();
   assert_eq!("817f80", c_str);
