@@ -103,11 +103,11 @@ impl FractionalIndex {
         &self.0
     }
 
-    pub fn to_hex(&self) -> String {
+    pub fn to_string(&self) -> String {
         bytes_to_hex(&self.0)
     }
 
-    pub fn from_hex(s: &str) -> Result<Self, DecodeError> {
+    pub fn from_string(s: &str) -> Result<Self, DecodeError> {
         if s.is_empty() {
             return Err(DecodeError::EmptyString);
         }
@@ -412,11 +412,11 @@ mod tests {
                 assert!(&indices[i] < &cb);
                 assert!(&cb < &indices[i + 1]);
 
-                let st = cb.to_hex();
-                assert!(FractionalIndex::from_hex(&st).unwrap() == cb);
+                let st = cb.to_string();
+                assert!(FractionalIndex::from_string(&st).unwrap() == cb);
                 println!("{:?} {:?}", cb, indices[i]);
-                println!("{} {}", st, indices[i].to_hex());
-                assert!(st < indices[i + 1].to_hex());
+                println!("{} {}", st, indices[i].to_string());
+                assert!(st < indices[i + 1].to_string());
 
                 new_indices.push(cb);
                 new_indices.push(indices[i + 1].clone());

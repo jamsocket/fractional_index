@@ -2,7 +2,7 @@
 
 mod hex;
 #[cfg(feature = "serde")]
-mod stringify;
+pub mod stringify;
 
 mod fract_index;
 #[cfg(feature = "serde")]

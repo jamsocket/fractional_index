@@ -5,7 +5,7 @@ pub fn serialize<S>(index: &FractionalIndex, serializer: S) -> Result<S::Ok, S::
 where
     S: Serializer,
 {
-    let s = index.to_hex();
+    let s = index.to_string();
     serializer.serialize_str(&s)
 }
 
@@ -14,5 +14,5 @@ where
     D: Deserializer<'de>,
 {
     let s = String::deserialize(deserializer)?;
-    FractionalIndex::from_hex(&s).map_err(serde::de::Error::custom)
+    FractionalIndex::from_string(&s).map_err(serde::de::Error::custom)
 }
