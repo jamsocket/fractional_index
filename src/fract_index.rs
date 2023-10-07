@@ -9,6 +9,16 @@ use serde::{Deserialize, Serialize};
 
 pub(crate) const TERMINATOR: u8 = 0b1000_0000; // =128
 
+/// A [FractionalIndex] is an opaque data type that is only useful for
+/// comparing to another [FractionalIndex].
+/// 
+/// It is always possible to construct a [FractionalIndex] that compares
+/// lexicographically before or after another [FractionalIndex], or between
+/// two (distinct) [FractionalIndex]es.
+/// 
+/// Because of this, it is useful as an index in a sorted data structure
+/// (like a [BTreeMap](std::collections::BTreeMap)) or for merging concurrent
+/// modifications to a shared list data structure.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct FractionalIndex(Vec<u8>);
@@ -67,15 +77,24 @@ fn new_after(bytes: &[u8]) -> Vec<u8> {
 pub enum DecodeError {
     EmptyString,
     MissingTerminator,
-    InvalidBase64,
+    InvalidChars,
 }
 
 impl Display for DecodeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            DecodeError::EmptyString => write!(f, "Empty string"),
-            DecodeError::MissingTerminator => write!(f, "Missing terminator"),
-            DecodeError::InvalidBase64 => write!(f, "Invalid base64"),
+            DecodeError::EmptyString => write!(
+                f,
+                "Attempted to decode an empty string as a fractional index."
+            ),
+            DecodeError::MissingTerminator => write!(
+                f,
+                "Attempted to decode a corrupt fractional index (missing terminator)."
+            ),
+            DecodeError::InvalidChars => write!(
+                f,
+                "Attempted to decode a corrupt fractional index (invalid characters)."
+            ),
         }
     }
 }
@@ -90,6 +109,7 @@ impl FractionalIndex {
         FractionalIndex(bytes)
     }
 
+    /// Constructs a FractionalIndex from a byte vec.
     pub fn from_bytes(bytes: Vec<u8>) -> Result<Self, DecodeError> {
         if bytes.last() != Some(&TERMINATOR) {
             return Err(DecodeError::MissingTerminator);
@@ -97,23 +117,27 @@ impl FractionalIndex {
         Ok(FractionalIndex(bytes))
     }
 
-    /// Returns the byte representation of this FractionalIndex, which DOES
-    /// INCLUDE the terminating byte.
+    /// Returns the byte representation of this FractionalIndex.
     pub fn as_bytes(&self) -> &[u8] {
         &self.0
     }
 
+    /// Returns a string representation of this FractionalIndex.
+    /// The string representation maintains the lexicographic ordering
+    /// of the [FractionalIndex].
     #[allow(clippy::inherent_to_string)]
     pub fn to_string(&self) -> String {
         bytes_to_hex(&self.0)
     }
 
+    /// Constructs a [FractionalIndex] from a string previously returned
+    /// by [FractionalIndex::to_string].
     pub fn from_string(s: &str) -> Result<Self, DecodeError> {
         if s.is_empty() {
             return Err(DecodeError::EmptyString);
         }
 
-        let bytes = hex_to_bytes(s).map_err(|_| DecodeError::InvalidBase64)?;
+        let bytes = hex_to_bytes(s).map_err(|_| DecodeError::InvalidChars)?;
 
         if bytes.last() != Some(&TERMINATOR) {
             return Err(DecodeError::MissingTerminator);
@@ -122,14 +146,22 @@ impl FractionalIndex {
         FractionalIndex::from_bytes(bytes)
     }
 
+    /// Construct a new [FractionalIndex] that compares as before
+    /// the given one.
     pub fn new_before(FractionalIndex(bytes): &FractionalIndex) -> FractionalIndex {
         FractionalIndex::from_vec_unterminated(new_before(bytes))
     }
 
+    /// Construct a new [FractionalIndex] that compares as after
+    /// the given one.
     pub fn new_after(FractionalIndex(bytes): &FractionalIndex) -> FractionalIndex {
         FractionalIndex::from_vec_unterminated(new_after(bytes))
     }
 
+    /// Construct a new [FractionalIndex] that compares as between
+    /// the given two [FractionalIndex]es, which are assumed to be provided
+    /// in order and distinct. Returns None if either of these assumptions
+    /// does not hold.
     pub fn new_between(
         FractionalIndex(left): &FractionalIndex,
         FractionalIndex(right): &FractionalIndex,
@@ -159,6 +191,11 @@ impl FractionalIndex {
         #[allow(clippy::comparison_chain)]
         if left.len() < right.len() {
             let (prefix, suffix) = right.split_at(shorter_len + 1);
+            if prefix.last().unwrap() < &TERMINATOR {
+                // Right side is less than the left side.
+                return None;
+            }
+
             let new_suffix = new_before(suffix);
             let mut bytes = Vec::with_capacity(new_suffix.len() + prefix.len() + 1);
             bytes.extend_from_slice(prefix);
@@ -166,6 +203,12 @@ impl FractionalIndex {
             Some(FractionalIndex::from_vec_unterminated(bytes))
         } else if left.len() > right.len() {
             let (prefix, suffix) = left.split_at(shorter_len + 1);
+            
+            if prefix.last().unwrap() >= &TERMINATOR {
+                // Left side is greater than the right side.
+                return None;
+            }
+
             let new_suffix = new_after(suffix);
             let mut bytes = Vec::with_capacity(new_suffix.len() + prefix.len() + 1);
             bytes.extend_from_slice(prefix);
@@ -332,6 +375,15 @@ mod tests {
     }
 
     #[test]
+    fn new_between_error() {
+        let a = FractionalIndex::default();
+        let b = FractionalIndex::new_after(&a);
+
+        assert_eq!(FractionalIndex::new_between(&a, &a), None);
+        assert_eq!(FractionalIndex::new_between(&b, &a), None);
+    }
+
+    #[test]
     fn new_between_extend() {
         {
             let left = FractionalIndex::from_vec_unterminated(vec![100]);
@@ -416,8 +468,6 @@ mod tests {
 
                 let st = cb.to_string();
                 assert!(FractionalIndex::from_string(&st).unwrap() == cb);
-                println!("{:?} {:?}", cb, indices[i]);
-                println!("{} {}", st, indices[i].to_string());
                 assert!(st < indices[i + 1].to_string());
 
                 new_indices.push(cb);
