@@ -1,3 +1,5 @@
+#![allow(deprecated)]
+
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
@@ -26,7 +28,7 @@ const MID_HIGH: u8 = 0b1100_0000; // =192
 /// raw `u8` values of the regular bytes. Conversion to [`FractionByte`]
 /// instances happens when individual digits of a [`ZenoIndex`] are
 /// accessed by calling `digit`.
-#[derive(PartialEq, Eq, Clone, Copy, Debug)]
+#[derive(PartialEq, Eq, Clone, Copy, Debug, Default)]
 enum FractionByte {
     /// A special “byte” which compares as if it were equal to 127.5.
     /// I.e., Byte(x) < Magic if x <= 127, otherwise Byte(x) > Magic.
@@ -37,16 +39,11 @@ enum FractionByte {
     /// our desired default value. So a sequence of zero “regular”
     /// bytes followed by infinite “magic” bytes represents the
     /// fraction 0.5.
+    #[default]
     Magic,
 
     /// A not-very-special byte.
     Byte(u8),
-}
-
-impl Default for FractionByte {
-    fn default() -> Self {
-        FractionByte::Magic
-    }
 }
 
 impl PartialOrd for FractionByte {

@@ -103,6 +103,7 @@ impl FractionalIndex {
         &self.0
     }
 
+    #[allow(clippy::inherent_to_string)]
     pub fn to_string(&self) -> String {
         bytes_to_hex(&self.0)
     }
@@ -144,8 +145,8 @@ impl FractionalIndex {
             if left[i] == right[i] - 1 {
                 let (prefix, suffix) = left.split_at(i + 1);
                 let mut bytes = Vec::with_capacity(suffix.len() + prefix.len() + 1);
-                bytes.extend_from_slice(&prefix);
-                bytes.extend_from_slice(&new_after(&suffix));
+                bytes.extend_from_slice(prefix);
+                bytes.extend_from_slice(&new_after(suffix));
                 return Some(FractionalIndex::from_vec_unterminated(bytes));
             }
 
@@ -155,20 +156,21 @@ impl FractionalIndex {
             }
         }
 
+        #[allow(clippy::comparison_chain)]
         if left.len() < right.len() {
             let (prefix, suffix) = right.split_at(shorter_len + 1);
-            let new_suffix = new_before(&suffix);
+            let new_suffix = new_before(suffix);
             let mut bytes = Vec::with_capacity(new_suffix.len() + prefix.len() + 1);
-            bytes.extend_from_slice(&prefix);
+            bytes.extend_from_slice(prefix);
             bytes.extend_from_slice(&new_suffix);
-            return Some(FractionalIndex::from_vec_unterminated(bytes));
+            Some(FractionalIndex::from_vec_unterminated(bytes))
         } else if left.len() > right.len() {
             let (prefix, suffix) = left.split_at(shorter_len + 1);
-            let new_suffix = new_after(&suffix);
+            let new_suffix = new_after(suffix);
             let mut bytes = Vec::with_capacity(new_suffix.len() + prefix.len() + 1);
-            bytes.extend_from_slice(&prefix);
+            bytes.extend_from_slice(prefix);
             bytes.extend_from_slice(&new_suffix);
-            return Some(FractionalIndex::from_vec_unterminated(bytes));
+            Some(FractionalIndex::from_vec_unterminated(bytes))
         } else {
             // They are equal.
             None

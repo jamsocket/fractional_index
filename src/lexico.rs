@@ -1,7 +1,8 @@
+#![allow(deprecated)]
+
 use crate::{
     hex::{byte_to_hex, bytes_to_hex, hex_to_bytes},
-    zeno_index::MAGIC_CEIL,
-    ZenoIndex,
+    zeno_index::{MAGIC_CEIL, ZenoIndex},
 };
 use serde::{Deserialize, Deserializer, Serializer};
 
