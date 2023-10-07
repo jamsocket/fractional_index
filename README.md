@@ -161,3 +161,17 @@ fn main() {
   assert_eq!(expected, json_value);
 }
 ```
+
+## Stability
+
+The byte representation of a `FractionalIndex` can be relied upon to be fully forward- and backward-compatible with future versions of this crate, meaning that the serialized representation of two `FractionalIndex`es produced by any version of this crate will compare the same way when deserialized in any other version.
+
+The actual byte representation of `FractionalIndex`es created by `new_before`, `new_after`, and `new_between` may differ between versions, but the result will always compare appropriately with the reference `FractionalIndex`(es) used for construction regardless of version.
+
+The byte representation of a `FractionalIndex` is **not** meant to be compatible with the byte representaiton of a `ZenoIndex`, nor are their serialized counterparts.
+
+## Version 2.x.x note
+
+In version 1.x.x of this crate, fractional indexing was implemented through a struct called `ZenoIndex`. The implementation of `ZenoIndex` is similar to `FractionalIndex`, and they both represent the underlying data as a byte string, but `ZenoIndex` requires a custom comparison function to be used with that byte string. `FractionalIndex` changes the byte representation so that a lexicographical comparison of the underlying byte data is all that is required to compare two `FractionalIndex`es.
+
+The `ZenoIndex` struct is still available in version 2.x.x of this crate, but it is deprecated. New code should use `FractionalIndex` instead, which implements the same functionality.
