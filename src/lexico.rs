@@ -1,3 +1,9 @@
+//! A module for serializing and deserializing a [ZenoIndex] to
+//! lexicographically comparable strings.
+//! 
+//! Deprecated along with [ZenoIndex]. The equivalent for
+//! [crate::FractionalIndex] is [crate::stringify].
+
 #![allow(deprecated)]
 
 use crate::{
