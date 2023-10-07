@@ -1,4 +1,4 @@
-use crate::{ZenoIndex, MAGIC_CEIL};
+use crate::zeno::{ZenoIndex, MAGIC_CEIL};
 use serde::{Deserialize, Deserializer, Serializer};
 use std::{error::Error, fmt::Display};
 
@@ -73,7 +73,7 @@ where
 #[cfg(test)]
 mod test {
     use super::*;
-    use serde::{Serialize, Deserialize};
+    use serde::{Deserialize, Serialize};
     use serde_json::Value;
 
     #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -89,7 +89,8 @@ mod test {
     }
 
     fn string_to_zeno_index(s: &str) -> ZenoIndex {
-        let TestStruct(result) = serde_json::from_str::<TestStruct>(&format!(r#""{}""#, s)).unwrap();
+        let TestStruct(result) =
+            serde_json::from_str::<TestStruct>(&format!(r#""{}""#, s)).unwrap();
         result.clone()
     }
 
@@ -125,7 +126,10 @@ mod test {
         }
 
         for i in 0..(indices.len() - 1) {
-            assert!(zeno_index_to_string(indices[i].clone()) < zeno_index_to_string(indices[i + 1].clone()));
+            assert!(
+                zeno_index_to_string(indices[i].clone())
+                    < zeno_index_to_string(indices[i + 1].clone())
+            );
             assert_eq!(
                 string_to_zeno_index(&zeno_index_to_string(indices[i].clone())),
                 indices[i]
@@ -137,11 +141,10 @@ mod test {
             for i in 0..(indices.len() - 1) {
                 let cb = ZenoIndex::new_between(&indices[i], &indices[i + 1]).unwrap();
 
-                assert!(zeno_index_to_string(indices[i].clone()) < zeno_index_to_string(cb.clone()));
-                assert_eq!(
-                    string_to_zeno_index(&zeno_index_to_string(cb.clone())),
-                    cb
+                assert!(
+                    zeno_index_to_string(indices[i].clone()) < zeno_index_to_string(cb.clone())
                 );
+                assert_eq!(string_to_zeno_index(&zeno_index_to_string(cb.clone())), cb);
 
                 new_indices.push(cb);
                 new_indices.push(indices[i + 1].clone());
