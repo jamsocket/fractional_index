@@ -7,7 +7,10 @@ pub mod stringify;
 mod fract_index;
 
 #[cfg(feature = "serde")]
-#[deprecated(since = "2.0.0", note = "Use FractionalIndex and fractional_index::stringify instead")]
+#[deprecated(
+    since = "2.0.0",
+    note = "Use FractionalIndex and fractional_index::stringify instead"
+)]
 pub mod lexico;
 
 #[deprecated(since = "2.0.0", note = "Use FractionalIndex instead")]

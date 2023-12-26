@@ -11,11 +11,11 @@ pub(crate) const TERMINATOR: u8 = 0b1000_0000; // =128
 
 /// A [FractionalIndex] is an opaque data type that is only useful for
 /// comparing to another [FractionalIndex].
-/// 
+///
 /// It is always possible to construct a [FractionalIndex] that compares
 /// lexicographically before or after another [FractionalIndex], or between
 /// two (distinct) [FractionalIndex]es.
-/// 
+///
 /// Because of this, it is useful as an index in a sorted data structure
 /// (like a [BTreeMap](std::collections::BTreeMap)) or for merging concurrent
 /// modifications to a shared list data structure.
@@ -158,6 +158,34 @@ impl FractionalIndex {
         FractionalIndex::from_vec_unterminated(new_after(bytes))
     }
 
+    /// Construct a new [FractionalIndex] based on a given optional lower
+    /// and upper bounds.
+    ///
+    /// If both bounds are provided, this is equivalent to
+    /// [FractionalIndex::new_between].
+    ///
+    /// If only a lower bound is provided, this is equivalent to
+    /// [FractionalIndex::new_after].
+    ///
+    /// If only an upper bound is provided, this is equivalent to
+    /// [FractionalIndex::new_before].
+    ///
+    /// If neither bound is provided, this is equivalent to
+    /// [FractionalIndex::default].
+    ///
+    /// Returns None if the bounds are not in order or are equal.
+    pub fn new(
+        lower_bound: Option<&FractionalIndex>,
+        upper_bound: Option<&FractionalIndex>,
+    ) -> Option<FractionalIndex> {
+        match (lower_bound, upper_bound) {
+            (Some(lower), Some(upper)) => FractionalIndex::new_between(lower, upper),
+            (Some(lower), None) => Some(FractionalIndex::new_after(lower)),
+            (None, Some(upper)) => Some(FractionalIndex::new_before(upper)),
+            (None, None) => FractionalIndex::default().into(),
+        }
+    }
+
     /// Construct a new [FractionalIndex] that compares as between
     /// the given two [FractionalIndex]es, which are assumed to be provided
     /// in order and distinct. Returns None if either of these assumptions
@@ -203,7 +231,7 @@ impl FractionalIndex {
             Some(FractionalIndex::from_vec_unterminated(bytes))
         } else if left.len() > right.len() {
             let (prefix, suffix) = left.split_at(shorter_len + 1);
-            
+
             if prefix.last().unwrap() >= &TERMINATOR {
                 // Left side is greater than the right side.
                 return None;
