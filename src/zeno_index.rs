@@ -1,5 +1,5 @@
 //! Implements [ZenoIndex] a form of fractional indexing.
-//! 
+//!
 //! Deprecated; use [crate::FractionalIndex] for new code.
 
 #![allow(deprecated)]

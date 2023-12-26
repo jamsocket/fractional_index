@@ -82,6 +82,28 @@ fn main() {
 
 This is mostly useful when constructing indexes that you need to be able to compare in a language with native string comparison but not bytestring comparison, like JavaScript.
 
+### `::new()` constructor
+
+The `::new()` constructor generalizes over `::default()`, `::new_before()`, `::new_after()`, and `::new_between()`.
+
+```rust
+use fractional_index::FractionalIndex;
+
+fn main() {
+  let a = FractionalIndex::default();
+  let a2 = FractionalIndex::new(None, None).unwrap();
+  assert_eq!(a, a2);
+
+  let b = FractionalIndex::new_after(&a);
+  let b2 = FractionalIndex::new(Some(&a), None).unwrap();
+  assert_eq!(b, b2);
+  
+  let c = FractionalIndex::new_between(&a, &b).unwrap();
+  let c2 = FractionalIndex::new(Some(&a), Some(&b)).unwrap();
+  assert_eq!(c, c2);
+}
+```
+
 ### Serialization
 
 With the `serde` feature (enabled by default), `FractionalIndexes` can be serialized.

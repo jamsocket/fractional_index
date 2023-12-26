@@ -1,6 +1,6 @@
 //! A module for serializing and deserializing a [ZenoIndex] to
 //! lexicographically comparable strings.
-//! 
+//!
 //! Deprecated along with [ZenoIndex]. The equivalent for
 //! [crate::FractionalIndex] is [crate::stringify].
 
@@ -8,7 +8,7 @@
 
 use crate::{
     hex::{byte_to_hex, bytes_to_hex, hex_to_bytes},
-    zeno_index::{MAGIC_CEIL, ZenoIndex},
+    zeno_index::{ZenoIndex, MAGIC_CEIL},
 };
 use serde::{Deserialize, Deserializer, Serializer};
 
