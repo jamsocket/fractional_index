@@ -17,27 +17,25 @@
 //!   c: FractionalIndex,
 //! }
 //!
-//! fn main() {
-//!   let a = FractionalIndex::default();
-//!   let b = FractionalIndex::new_after(&a);
-//!   let c = FractionalIndex::new_between(&a, &b).unwrap();
+//! let a = FractionalIndex::default();
+//! let b = FractionalIndex::new_after(&a);
+//! let c = FractionalIndex::new_between(&a, &b).unwrap();
 //!
-//!   let my_struct = MyStruct {
-//!     a: a.clone(),
-//!     b: b.clone(),
-//!     c: c.clone(),
-//!   };
+//! let my_struct = MyStruct {
+//!   a: a.clone(),
+//!   b: b.clone(),
+//!   c: c.clone(),
+//! };
 //!
-//!   let json_value = serde_json::to_value(&my_struct).unwrap();
+//! let json_value = serde_json::to_value(&my_struct).unwrap();
 //!
-//!   let expected = json!({
-//!     "a": "80",
-//!     "b": "8180",
-//!     "c": "817f80",
-//!   });
+//! let expected = json!({
+//!   "a": "80",
+//!   "b": "8180",
+//!   "c": "817f80",
+//! });
 //!
-//!   assert_eq!(expected, json_value);
-//! }
+//! assert_eq!(expected, json_value);
 //! ```
 use crate::FractionalIndex;
 use serde::{Deserialize, Deserializer, Serializer};

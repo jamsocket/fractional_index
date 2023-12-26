@@ -179,9 +179,9 @@ impl FractionalIndex {
         upper_bound: Option<&FractionalIndex>,
     ) -> Option<FractionalIndex> {
         match (lower_bound, upper_bound) {
-            (Some(lower), Some(upper)) => FractionalIndex::new_between(&lower, &upper),
-            (Some(lower), None) => Some(FractionalIndex::new_after(&lower)),
-            (None, Some(upper)) => Some(FractionalIndex::new_before(&upper)),
+            (Some(lower), Some(upper)) => FractionalIndex::new_between(lower, upper),
+            (Some(lower), None) => Some(FractionalIndex::new_after(lower)),
+            (None, Some(upper)) => Some(FractionalIndex::new_before(upper)),
             (None, None) => FractionalIndex::default().into(),
         }
     }
