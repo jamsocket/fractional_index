@@ -4,6 +4,9 @@ mod hex;
 #[cfg(feature = "serde")]
 pub mod stringify;
 
+#[cfg(any(feature = "with-sqlx-postgres"))]
+mod sqlx;
+
 mod fract_index;
 
 #[cfg(feature = "serde")]
