@@ -10,7 +10,7 @@ repository = "https://github.com/drifting-in-space/fractional_index"
 
 [dependencies]
 serde = { version = "1.0.210", features = ["derive"], optional = true }
-sqlx = { version = "0.8", default-features = false, features = ["macros", "postgres"], optional = true }
+sqlx = { version = "0.8.2", default-features = false, features = ["macros", "postgres"], optional = true }
 
 [features]
 default = ["serde"]
