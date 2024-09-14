@@ -2,6 +2,7 @@ use crate::hex::{bytes_to_hex, hex_to_bytes};
 use std::{
     error::Error,
     fmt::{self, Display},
+    ops::Deref,
 };
 
 #[cfg(feature = "serde")]
@@ -22,6 +23,14 @@ pub(crate) const TERMINATOR: u8 = 0b1000_0000; // =128
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct FractionalIndex(Vec<u8>);
+
+impl Deref for FractionalIndex {
+    type Target = Vec<u8>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
 
 impl Default for FractionalIndex {
     fn default() -> Self {

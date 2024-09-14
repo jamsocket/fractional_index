@@ -13,7 +13,7 @@ serde = { version = "1.0.210", features = ["derive"], optional = true }
 sqlx = { version = "0.8.2", default-features = false, optional = true }
 
 [features]
-default = ["serde"]
+default = ["serde", "with-sqlx-postgres"]
 with-sqlx-postgres = ["dep:sqlx", "sqlx?/postgres"]
 
 [dev-dependencies]
