@@ -1,6 +1,6 @@
 [package]
 name = "fractional_index"
-version = "2.0.1"
+version = "2.0.2"
 edition = "2018"
 readme = "README.md"
 description = "An implementation of fractional indexing."
@@ -9,10 +9,12 @@ license = "MIT"
 repository = "https://github.com/drifting-in-space/fractional_index"
 
 [dependencies]
-serde = { version = "1.0.130", features = ["derive"], optional=true }
+serde = { version = "1.0.210", features = ["derive"], optional = true }
+sqlx = { version = "0.8", default-features = false, features = ["macros", "postgres"], optional = true }
 
 [features]
-default = ["serde"]
+default = ["serde", "with-sqlx-postgres"]
+with-sqlx-postgres = ["dep:sqlx"]
 
 [dev-dependencies]
-serde_json = "1.0.91"
+serde_json = "1.0.128"

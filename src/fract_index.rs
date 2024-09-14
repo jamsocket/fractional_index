@@ -7,6 +7,9 @@ use std::{
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "with-sqlx-postgres")]
+use sqlx::FromRow;
+
 pub(crate) const TERMINATOR: u8 = 0b1000_0000; // =128
 
 /// A [FractionalIndex] is an opaque data type that is only useful for
@@ -21,6 +24,7 @@ pub(crate) const TERMINATOR: u8 = 0b1000_0000; // =128
 /// modifications to a shared list data structure.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "with-sqlx-postgres", derive(FromRow))]
 pub struct FractionalIndex(Vec<u8>);
 
 impl Default for FractionalIndex {
