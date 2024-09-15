@@ -181,6 +181,26 @@ fn main() {
 }
 ```
 
+### SQLX - Postgres
+
+With the `with-sqlx-postgres` feature (disabled by default), `FractionalIndex` can be used as a member of a `struct` that implements `sqlx::FromRow`, i.e., `cargo add fractional_index -F with-sqlx-postgres`.
+
+```rust
+use fractional_index::FractionalIndex;
+use sqlx::{FromRow};
+
+#[derive(FromRow)]
+struct MyStruct {
+  a: FractionalIndex,
+}
+
+let mut stream = sqlx::query_as::<_, User>("SELECT * FROM users WHERE email = ? OR name = ?")
+  .bind(user_email)
+  .bind(user_name)
+  .fetch(&mut conn);
+```
+
+
 ## Stability
 
 The byte representation of a `FractionalIndex` can be relied upon to be fully forward- and backward-compatible with future versions of this crate, meaning that the serialized representation of two `FractionalIndex`es produced by any version of this crate will compare the same way when deserialized in any other version.

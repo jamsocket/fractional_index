@@ -4,6 +4,7 @@ mod hex;
 #[cfg(feature = "serde")]
 pub mod stringify;
 
+// We use `any` so we can add more database implementations.
 #[cfg(any(feature = "with-sqlx-postgres"))]
 mod sqlx;
 
