@@ -2,6 +2,14 @@ use fractional_index::FractionalIndex;
 use sqlx::sqlite::SqlitePoolOptions;
 use sqlx::FromRow;
 
+const CREATE_TABLE_QUERY: &str = r#"
+    create table item (
+        id integer primary key,
+        name text not null,
+        fractional_index blob not null,
+        nullable_fractional_index blob
+    )"#;
+
 #[derive(FromRow, Debug)]
 struct Item {
     #[allow(unused)]
@@ -21,7 +29,10 @@ async fn sqlx_insert_select() {
         .unwrap();
 
     // Create table.
-    sqlx::migrate!("tests/migrations").run(&pool).await.unwrap();
+    sqlx::query(CREATE_TABLE_QUERY)
+        .execute(&pool)
+        .await
+        .unwrap();
 
     let idx2 = FractionalIndex::new_after(&FractionalIndex::default());
 
@@ -54,7 +65,10 @@ async fn sqlx_insert_select_nullable() {
         .unwrap();
 
     // Create table.
-    sqlx::migrate!("tests/migrations").run(&pool).await.unwrap();
+    sqlx::query(CREATE_TABLE_QUERY)
+        .execute(&pool)
+        .await
+        .unwrap();
 
     let idx2 = FractionalIndex::new_after(&FractionalIndex::default());
     let idx3 = FractionalIndex::new_after(&idx2);
