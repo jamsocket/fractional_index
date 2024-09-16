@@ -194,10 +194,8 @@ struct MyStruct {
   a: FractionalIndex,
 }
 
-let mut stream = sqlx::query_as::<_, User>("SELECT * FROM users WHERE email = ? OR name = ?")
-  .bind(user_email)
-  .bind(user_name)
-  .fetch(&mut conn);
+let mut stream = sqlx::query_as::<_, User>("SELECT * FROM items")
+  .fetch_one(&mut conn);
 ```
 
 
