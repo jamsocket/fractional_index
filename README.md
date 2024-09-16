@@ -183,7 +183,7 @@ fn main() {
 
 ### SQLX - Postgres
 
-With the `with-sqlx-postgres` feature (disabled by default), `FractionalIndex` can be used as a member of a `struct` that implements `sqlx::FromRow`, i.e., `cargo add fractional_index -F with-sqlx-postgres`.
+With the `with-sqlx-postgres` feature (disabled by default), `FractionalIndex` can be used as a member of a `struct` that implements `sqlx::FromRow` (assuming the struct member represents a `BYTEA`), i.e., `cargo add fractional_index -F with-sqlx-postgres`.
 
 ```rust
 use fractional_index::FractionalIndex;
