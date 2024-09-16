@@ -1,7 +1,9 @@
 use crate::hex::{bytes_to_hex, hex_to_bytes};
 use std::{
+    convert::TryFrom,
     error::Error,
     fmt::{self, Display},
+    ops::Deref,
 };
 
 #[cfg(feature = "serde")]
@@ -246,6 +248,33 @@ impl FractionalIndex {
             // They are equal.
             None
         }
+    }
+}
+
+impl TryFrom<Vec<u8>> for FractionalIndex {
+    type Error = DecodeError;
+
+    fn try_from(bytes: Vec<u8>) -> Result<Self, Self::Error> {
+        FractionalIndex::from_bytes(bytes)
+    }
+}
+
+impl TryFrom<Option<Vec<u8>>> for FractionalIndex {
+    type Error = DecodeError;
+
+    fn try_from(bytes: Option<Vec<u8>>) -> Result<Self, Self::Error> {
+        match bytes {
+            Some(bytes) => FractionalIndex::from_bytes(bytes),
+            None => Ok(FractionalIndex::default()),
+        }
+    }
+}
+
+impl Deref for FractionalIndex {
+    type Target = [u8];
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
 
