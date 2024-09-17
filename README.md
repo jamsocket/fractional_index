@@ -1,10 +1,10 @@
 # `fractional_index`
 
-[![GitHub Repo stars](https://img.shields.io/github/stars/drifting-in-space/fractional_index?style=social)](https://github.com/drifting-in-space/fractional_index)
+[![GitHub Repo stars](https://img.shields.io/github/stars/jamsocket/fractional_index?style=social)](https://github.com/jamsocket/fractional_index)
 [![crates.io](https://img.shields.io/crates/v/fractional_index.svg)](https://crates.io/crates/fractional_index)
 [![docs.rs](https://img.shields.io/badge/docs-release-brightgreen)](https://docs.rs/fractional_index/)
-[![wokflow state](https://github.com/drifting-in-space/aper/workflows/build/badge.svg)](https://github.com/drifting-in-space/aper/actions/workflows/rust.yml)
-[![dependency status](https://deps.rs/repo/github/drifting-in-space/fractional_index/status.svg)](https://deps.rs/repo/github/drifting-in-space/fractional_index)
+[![build](https://github.com/jamsocket/fractional_index/actions/workflows/rust.yml/badge.svg)](https://github.com/jamsocket/fractional_index/actions/workflows/rust.yml)
+[![dependency status](https://deps.rs/repo/github/jamsocket/fractional_index/status.svg)](https://deps.rs/repo/github/jamsocket/fractional_index)
 
 This crate implements fractional indexing, a term coined by Figma in their blog post
 [*Realtime Editing of Ordered Sequences*](https://www.figma.com/blog/realtime-editing-of-ordered-sequences/).
