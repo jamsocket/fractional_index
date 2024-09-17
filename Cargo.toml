@@ -16,3 +16,5 @@ default = ["serde"]
 
 [dev-dependencies]
 serde_json = "1.0.91"
+sqlx = { version = "0.8.2", features = ["sqlite", "runtime-tokio"] }
+tokio = { version = "1.40.0", features = ["macros", "rt"] }
