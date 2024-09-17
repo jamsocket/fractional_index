@@ -1,12 +1,12 @@
 [package]
 name = "fractional_index"
-version = "2.0.1"
+version = "2.0.2"
 edition = "2018"
 readme = "README.md"
 description = "An implementation of fractional indexing."
 authors = ["Paul Butler <paulgb@gmail.com>"]
 license = "MIT"
-repository = "https://github.com/drifting-in-space/fractional_index"
+repository = "https://github.com/jamsocket/fractional_index"
 
 [dependencies]
 serde = { version = "1.0.130", features = ["derive"], optional=true }
