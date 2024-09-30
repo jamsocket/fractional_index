@@ -181,6 +181,28 @@ fn main() {
 }
 ```
 
+### SQLX Support
+
+Now `FractionalIndex` can be used as a member of a `struct` that implements `sqlx::FromRow`, you just need to annotate your member with `#[sqlx(try_from = "Vec<u8>")]` when your member type is `FractionalIndex` or `#[sqlx(try_from = "Option<Vec<u8>>")]`  when your member type is `Option<FractionalIndex>`. Also, make sure to use `as_bytes()` when use a `FractionalIndex` value within `bind()`.
+
+```rust
+use fractional_index::FractionalIndex;
+use sqlx::{FromRow};
+
+#[derive(FromRow)]
+struct MyStruct {
+  #[sqlx(try_from = "Option<Vec<u8>>")]
+  a: FractionalIndex,
+}
+
+let fractional_index = FractionalIndex::default();
+
+let mut stream = sqlx::query_as::<_, User>("SELECT * FROM items WHERE fraction_index = $1")
+  .bind(fractional_index.as_bytes())
+  .fetch_one(&mut conn);
+```
+
+
 ## Stability
 
 The byte representation of a `FractionalIndex` can be relied upon to be fully forward- and backward-compatible with future versions of this crate, meaning that the serialized representation of two `FractionalIndex`es produced by any version of this crate will compare the same way when deserialized in any other version.
