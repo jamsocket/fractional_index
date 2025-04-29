@@ -15,7 +15,7 @@ another `FractionalIndex`. A `FractionalIndex` can only be constructed from a de
 reference to an existing `FractionalIndex`.
 
 This is useful as a key in a `BTreeMap` when we want to be able to arbitrarily insert or
-re-order elements in a collection, but don't actually care what the key is. It’s also useful for resloving conflicts when a list is modified concurrently by multiple users.
+re-order elements in a collection, but don't actually care what the key is. It’s also useful for resolving conflicts when a list is modified concurrently by multiple users.
 
 ## Usage
 
