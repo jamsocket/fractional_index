@@ -198,13 +198,22 @@ impl FractionalIndex {
     ) -> Option<FractionalIndex> {
         let shorter_len = std::cmp::min(left.len(), right.len()) - 1;
         for i in 0..shorter_len {
-            if left[i] < right[i] - 1 {
+            if left[i] > right[i] {
+                // We return None if right is greater than left.
+                return None;
+            }
+
+            let Some(right_minus_one) = right[i].checked_sub(1) else {
+                continue;
+            };
+
+            if left[i] < right_minus_one {
                 let mut bytes: Vec<u8> = left[0..=i].into();
                 bytes[i] += (right[i] - left[i]) / 2;
                 return Some(FractionalIndex::from_vec_unterminated(bytes));
             }
 
-            if left[i] == right[i] - 1 {
+            if left[i] == right_minus_one {
                 let (prefix, suffix) = left.split_at(i + 1);
                 let mut bytes = Vec::with_capacity(suffix.len() + prefix.len() + 1);
                 bytes.extend_from_slice(prefix);
@@ -212,10 +221,6 @@ impl FractionalIndex {
                 return Some(FractionalIndex::from_vec_unterminated(bytes));
             }
 
-            if left[i] > right[i] {
-                // We return None if right is greater than left.
-                return None;
-            }
         }
 
         #[allow(clippy::comparison_chain)]
@@ -428,6 +433,13 @@ mod tests {
             let right = FractionalIndex::from_vec_unterminated(vec![]);
             let mid = FractionalIndex::new_between(&left, &right).unwrap();
             assert_eq!(mid.as_bytes(), &[127, 129, 128]);
+        }
+
+        {
+            let left = FractionalIndex::from_vec_unterminated(vec![0, 127]);
+            let right = FractionalIndex::from_vec_unterminated(vec![0]);
+            let mid = FractionalIndex::new_between(&left, &right).unwrap();
+            assert_eq!(mid.as_bytes(), &[0, 127, 129, 128]);
         }
     }
 
